@@ -21,47 +21,36 @@ public class Solver {
 		int step = 0;
 
 		MinPQ<SearchNode> boardSolution = new MinPQ<>();
-		MinPQ<SearchNode> twinSolution = new MinPQ<>();
 		HashSet<SearchNode> searchSet = new HashSet<SearchNode>();
-		HashSet<SearchNode> twinSearchSet = new HashSet<SearchNode>();
 
 		Board nowB = this.board;
-		SearchNode nowS = new SearchNode(nowB, step, null);
-		searchSet.add(nowS);
+		SearchNode nowS = new SearchNode(nowB, step, null, false);
 		Board twinNowB = twinBoard;
-		SearchNode twinNowS = new SearchNode(twinNowB, step, null);
-		twinSearchSet.add(twinNowS);
-		// System.out.println(nowB.toString());
+		SearchNode twinNowS = new SearchNode(twinNowB, step, null, true);
+		searchSet.add(nowS);
+		searchSet.add(twinNowS);
+		boardSolution.insert(nowS);
+		boardSolution.insert(twinNowS);
+		
+		nowS = boardSolution.delMin();
+		nowB = nowS.getBoard();
 
-		while ((!nowB.isGoal()) && (!twinNowB.isGoal())) {
-			// System.out.println("-------------------------");
-			// step++;
+		while (!nowB.isGoal()) {
 			Iterable<Board> nowBNext = nowB.neighbors();
 			for (Board b : nowBNext) {
-				// System.out.println(b.toString());
-				SearchNode newSN = new SearchNode(b, nowS.step + 1, nowS);
-				if ((!searchSet.contains(newSN))) {
+				SearchNode newSN = new SearchNode(b, nowS.step + 1, nowS, nowS.isTwin);
+				if ((nowS.previousNode == null) || (!b.equals(nowS.previousNode.board))) {
 					boardSolution.insert(newSN);
-					searchSet.add(newSN);
+//					searchSet.add(newSN);
 				}
 			}
-
-			Iterable<Board> twinNowBNext = twinNowB.neighbors();
-			for (Board b : twinNowBNext) {
-				SearchNode twinNewSN = new SearchNode(b, twinNowS.step + 1, twinNowS);
-				if ((!twinSearchSet.contains(twinNewSN))) {
-					twinSolution.insert(twinNewSN);
-					twinSearchSet.add(twinNewSN);
-				}
-			}
-
+			
 			nowS = boardSolution.delMin();
-			twinNowS = twinSolution.delMin();
-
 			nowB = nowS.getBoard();
-			twinNowB = twinNowS.getBoard();
+
 		}
-		if (nowB.isGoal()) {
+		
+		if (!nowS.isTwin) {
 			this.solvable = true;
 			step = 0;
 			solution = new Stack<>();
@@ -71,8 +60,8 @@ public class Solver {
 				nowS = nowS.getPreviousNode();
 			}
 			solution.push(nowS.getBoard());
+			this.step = step;
 		}
-		this.step = step;
 	}
 
 	public boolean isSolvable() {
@@ -92,13 +81,15 @@ public class Solver {
 		private int step;
 		private int manhattan;
 		private SearchNode previousNode;
+		private boolean isTwin;
 
-		SearchNode(Board board, int step, SearchNode previous) {
+		SearchNode(Board board, int step, SearchNode previous, boolean isTwin) {
 			// TODO Auto-generated constructor stub
 			this.board = board;
 			this.step = step;
 			previousNode = previous;
 			this.manhattan = board.manhattan();
+			this.isTwin = isTwin;
 		}
 
 		public int getPriority() {
@@ -123,22 +114,6 @@ public class Solver {
 
 		public SearchNode getPreviousNode() {
 			return previousNode;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			// TODO Auto-generated method stub
-			SearchNode node = (SearchNode) obj;
-			if (this.board.equals(node.board)) {
-				return true;
-			}
-			return false;
-		}
-
-		@Override
-		public int hashCode() {
-			// TODO Auto-generated method stub
-			return this.manhattan;
 		}
 	}
 
