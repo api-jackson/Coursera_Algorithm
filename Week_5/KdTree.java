@@ -37,72 +37,64 @@ public class KdTree {
 			return;
 		
 		/*  Primary Code  */
-		/*
+		double x = p.x();
+		double y = p.y();
+		
 		if (this.root == null)
 		{
-			this.root = new Node(p, new RectHV(0, 0, 1, 1));
+			this.root = new Node(p, new RectHV(0, 0, 1, 1), true);
+			size++;
+			return;
 		}
 		else 
 		{
-			Node now;
-			boolean XFlag = true;
-			boolean LFlag = true;
-			Node next = this.root;
-			do {
-				now = next;
-				if (XFlag == true)
-				{
-					if (p.x() < now.getP().x())
-					{
-						next = now.getLb();
-						LFlag = true;
-					}
-					else if (p.x() >= now.getP().x()) {
-						next = now.getRt();
-						LFlag = false;
-					}
-					XFlag = false;
-				}
-
-				else {
-					if (p.y() < now.getP().y())
-					{
-						next = now.getLb();
-						LFlag = true;
-					}
-					else if (p.y() >= now.getP().y()) {
-						next = now.getRt();
-						LFlag = false;
-					}
-					XFlag = true;
-				}
-			} while (next != null);
-			
-			if (LFlag == true)
+			Node now = root;
+			Node next = root;
+			while (next != null)
 			{
-				if (XFlag == true)
+				now = next;
+				if (now.XFlag == true)
 				{
-					now.setLb(new Node(p, new RectHV(now.getXMin(), now.getYMax(), now.getXMax(), now.getP().y())));
+					if (x < now.p.x()) {
+						next = now.lb;						
+					}
+					else {
+						next = now.rt;
+					}
 				}
 				else {
-					now.setLb(new Node(p, new RectHV(now.getXMin(), now.getYMin(), now.getP().x(), now.getYMax())));
+					if (y < now.p.y()) {
+						next = now.lb;
+					}
+					else {
+						next = now.rt;
+					}						
+				}
+			}
+			
+			if (now.XFlag == true)
+			{
+				if (x < now.p.x()) {
+					now.setLb(new Node(p, new RectHV(now.rect.xmin(), now.rect.ymin(), now.p.x(), now.rect.ymax()), !now.XFlag));
+				}
+				else {
+					now.setRt(new Node(p, new RectHV(now.p.x(), now.rect.ymin(), now.rect.xmax(), now.rect.ymax()), !now.XFlag));
 				}
 			}
 			else {
-				if (XFlag == true)
-				{
-					now.setRt(new Node(p, new RectHV(now.getXMin(), now.getP().y(), now.getXMax(), now.getYMax())));
+				if (y < now.p.y()) {
+					now.setLb(new Node(p, new RectHV(now.rect.xmin(), now.rect.ymin(), now.rect.xmax(), now.p.y()), !now.XFlag));
 				}
 				else {
-					now.setRt(new Node(p, new RectHV(now.getP().x(), now.getYMin(), now.getXMax(), now.getYMax())));
+					now.setRt(new Node(p, new RectHV(now.rect.xmin(), now.p.y(), now.rect.xmax(), now.rect.ymax()), !now.XFlag));
 				}
 			}
 		}
-		*/
+		
 		/*  Primary Code end  */	
 		
 		/*  Compact Code Start  */
-		root = insert(root, p, true, new RectHV(0, 0, 1, 1));
+//		root = insert(root, p, true, new RectHV(0, 0, 1, 1));
 		size++;
 		/*  Compact Code End  */
 	}
@@ -144,45 +136,46 @@ public class KdTree {
 		if (p.getClass() != Point2D.class) return false;
 		
 		/*  Primary Code Start  */
-		/*
+		double x = p.x();
+		double y = p.y();
+		
 		if (this.root == null)
 			return false;
 		
-		Node now = this.root;
-		int XCompareFlag = 1;
-		
-		do {
-			if (now.getP().equals(p))
-				return true;
-			
-			if (XCompareFlag == 1)
+		Node now = root;
+		while (now != null)
+		{
+			if (now.p.equals(p))
 			{
-				if (p.x() < now.getP().x())
-				{
-					now = now.getLb();
-				}
-				else if (p.x() >= now.getP().x()) {
-					now = now.getRt();
-				}
-				XCompareFlag = 0;
+				return true;
 			}
-			else if (XCompareFlag == 0) {
-				if (p.y() < now.getP().y())
+			if (now.XFlag == true)
+			{
+				if (x < now.p.x())
 				{
-					now = now.getLb();
+					now = now.lb;
 				}
-				else if (p.y() >= now.getP().y()) {
-					now = now.getRt();
+				else {
+					now = now.rt;
 				}
 			}
-		} while (now != null);
-		
+			else {
+				if (y < now.p.y())
+				{
+					now = now.lb;
+				}
+				else {
+					now = now.rt;
+				}
+			}
+		}
+
 		return false;
-		*/
+		
 		/*  Primary Code End  */
 		
 		/*  Compact Code Start  */
-		return get(p) != null;
+//		return get(p) != null;
 		/*  Compact Code End  */
 		
 	}
@@ -349,7 +342,7 @@ public class KdTree {
 		// add in 2016.12.01
 		/*****************************************************/
 		if (node.lb != null) {
-			if (node.lb.rect.contains(p))
+			if (minDistanceToRect(node.lb.rect, p) < nearestDistance)
 			{
 				nearest(node.lb, !XFlag, p);
 				if ((node.rt != null) && (minDistanceToRect(node.rt.rect, p) < nearestDistance)) {
@@ -368,114 +361,45 @@ public class KdTree {
 					{nearest(node.lb, !XFlag, p);}
 				}
 				else {
-					if (minDistanceToRect(node.lb.rect, p) < nearestDistance)
-					{nearest(node.lb, !XFlag, p);}
-					if (minDistanceToRect(node.rt.rect, p) < nearestDistance)
-					{nearest(node.rt, !XFlag, p);}
+					if (node.XFlag == true)
+					{
+						if (minDistanceToRect(node.lb.rect, p) < nearestDistance)
+						{nearest(node.lb, !XFlag, p);}
+						if (minDistanceToRect(node.rt.rect, p) < nearestDistance)
+						{nearest(node.rt, !XFlag, p);}						
+					}
+					else {
+						if (minDistanceToRect(node.rt.rect, p) < nearestDistance)
+						{nearest(node.rt, !XFlag, p);}
+						if (minDistanceToRect(node.lb.rect, p) < nearestDistance)
+						{nearest(node.lb, !XFlag, p);}
+					}
 				}
 			}
 		}
 		else if (node.rt != null) {
-			if ((node.rt.rect.contains(p)) || (minDistanceToRect(node.rt.rect, p) < nearestDistance))
+			if (minDistanceToRect(node.rt.rect, p) < nearestDistance)
 			{nearest(node.rt, !XFlag, p);}
 		}
 		/*****************************************************/
-		
-		
-		/*** 2016.12.01  ***/
-		/***
-		if (XFlag)
-		{
-			XFlag = false;
-			if (p.x() < point.x())
-			{
-				if (node.getLb() != null)
-				{
-					if (node.getLb().getP().distanceSquaredTo(p) >= 
-							(node.getP().x() - p.x()) * (node.getP().x() - p.x()))
-					{
-						nearest(node.getRt(), XFlag, p);
-					}
-					nearest(node.getLb(), XFlag, p);
-				}
-				else if (node.getLb() == null)
-				{
-					nearest(node.getRt(), XFlag, p);
-				}
-			}
-			if (p.x() >= point.x())
-			{
-				if (node.getRt() != null)
-				{
-					if (node.getRt().getP().distanceSquaredTo(p) >= 
-							(node.getP().x() - p.x()) * (node.getP().x() - p.x()))
-					{
-						nearest(node.getLb(), XFlag, p);
-					}
-					nearest(node.getRt(), XFlag, p);
-				}
-				else if (node.getRt() == null) 
-				{
-					nearest(node.getLb(), XFlag, p);
-				}
-			}
-		}
-		else if (!XFlag) {
-			XFlag = true;
-			
-			if (p.y() < point.y())
-			{
-				if (node.getLb() != null)
-				{
-					if (node.getLb().getP().distanceSquaredTo(p) >=
-							(node.getP().y() - p.y()) * (node.getP().y() - p.y()))
-					{
-						nearest(node.getRt(), XFlag, p);
-					}
-					nearest(node.getLb(), XFlag, p);
-				}
-				else if (node.getLb() == null) 
-				{
-					nearest(node.getRt(), XFlag, p);
-				}
-			}
-			if (p.y() >= point.y())
-			{
-				if (node.getRt() != null)
-				{
-					if (node.getRt().getP().distanceSquaredTo(p) >=
-							(node.getP().y() - p.y()) * (node.getP().y() - p.y()))
-					{
-						nearest(node.getLb(), XFlag, p);
-					}
-					nearest(node.getRt(), XFlag, p);
-				}
-				else if (node.getRt() == null) 
-				{
-					nearest(node.getLb(), XFlag, p);
-				}
-			}
-		}
-		***/
-		/*** 2016.12.01 ***/
+
 	}
 	
 	private double minDistanceToRect(RectHV rect, Point2D point)
 	{
-		double xmin = Math.abs(point.x() - rect.xmin());
-		double xmax = Math.abs(point.x() - rect.xmax());
-		double ymin = Math.abs(point.y() - rect.ymin());
-		double ymax = Math.abs(point.y() - rect.ymax());
-		
-		double min = xmin;
-		if (xmax < min) 
-			min = xmax;		
-		if (ymin < min)
-			min = ymin;		
-		if (ymax < min)
-			min = ymax;
-		
-		return min*min;
+        double dx = 0.0, dy = 0.0;
+        double x = point.x();
+        double y = point.y();
+        double xmin = rect.xmin();
+        double xmax = rect.xmax();
+        double ymin = rect.ymin();
+        double ymax = rect.ymax();
+        if      (x < xmin) dx = x - xmin;
+        else if (x > xmax) dx = x - xmax;
+        if      (y < ymin) dy = y - ymin;
+        else if (y > ymax) dy = y - ymax;
+        
+        return dx*dx + dy*dy;
 	}
 	
 	private void argumentTest(Object obj) {
@@ -505,6 +429,15 @@ public class KdTree {
 			this.rect = rect;
 			lb = null;
 			rt = null;
+		}
+		
+		public Node(Point2D p, RectHV rect, boolean XFlag) {
+			// TODO Auto-generated constructor stub
+			this.p = p;
+			this.rect = rect;
+			lb = null;
+			rt = null;
+			this.XFlag = XFlag;
 		}
 		
 		public Point2D getP()
