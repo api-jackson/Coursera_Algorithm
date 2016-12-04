@@ -341,48 +341,90 @@ public class KdTree {
 		
 		// add in 2016.12.01
 		/*****************************************************/
-		if (node.lb != null) {
-			if (minDistanceToRect(node.lb.rect, p) < nearestDistance)
-			{
-				nearest(node.lb, !XFlag, p);
-				if ((node.rt != null) && (minDistanceToRect(node.rt.rect, p) < nearestDistance)) {
-					nearest(node.rt, !XFlag, p);
-				}
-			}
-			else {
-				if (node.rt == null)
-				{
-					if (minDistanceToRect(node.lb.rect, p) < nearestDistance)
-					{nearest(node.lb, !XFlag, p);}
-				}
-				else if ((node.rt.rect.contains(p))) {
-					nearest(node.rt, !XFlag, p);
-					if (minDistanceToRect(node.lb.rect, p) < nearestDistance)
-					{nearest(node.lb, !XFlag, p);}
-				}
-				else {
-					if (node.XFlag == true)
-					{
-						if (minDistanceToRect(node.lb.rect, p) < nearestDistance)
-						{nearest(node.lb, !XFlag, p);}
-						if (minDistanceToRect(node.rt.rect, p) < nearestDistance)
-						{nearest(node.rt, !XFlag, p);}						
-					}
-					else {
-						if (minDistanceToRect(node.rt.rect, p) < nearestDistance)
-						{nearest(node.rt, !XFlag, p);}
-						if (minDistanceToRect(node.lb.rect, p) < nearestDistance)
-						{nearest(node.lb, !XFlag, p);}
-					}
-				}
-			}
-		}
-		else if (node.rt != null) {
-			if (minDistanceToRect(node.rt.rect, p) < nearestDistance)
-			{nearest(node.rt, !XFlag, p);}
-		}
+//		if (node.lb != null) {
+//			if (minDistanceToRect(node.lb.rect, p) < nearestDistance)
+//			{
+//				nearest(node.lb, !XFlag, p);
+//				if ((node.rt != null) && (minDistanceToRect(node.rt.rect, p) < nearestDistance)) {
+//					nearest(node.rt, !XFlag, p);
+//				}
+//			}
+//			else {
+//				if (node.rt == null)
+//				{
+//					if (minDistanceToRect(node.lb.rect, p) < nearestDistance)
+//					{nearest(node.lb, !XFlag, p);}
+//				}
+//				else if ((node.rt.rect.contains(p))) {
+//					nearest(node.rt, !XFlag, p);
+//					if (minDistanceToRect(node.lb.rect, p) < nearestDistance)
+//					{nearest(node.lb, !XFlag, p);}
+//				}
+//				else {
+//					if (node.XFlag == true)
+//					{
+//						if (minDistanceToRect(node.lb.rect, p) < nearestDistance)
+//						{nearest(node.lb, !XFlag, p);}
+//						if (minDistanceToRect(node.rt.rect, p) < nearestDistance)
+//						{nearest(node.rt, !XFlag, p);}						
+//					}
+//					else {
+//						if (minDistanceToRect(node.rt.rect, p) < nearestDistance)
+//						{nearest(node.rt, !XFlag, p);}
+//						if (minDistanceToRect(node.lb.rect, p) < nearestDistance)
+//						{nearest(node.lb, !XFlag, p);}
+//					}
+//				}
+//			}
+//		}
+//		else if (node.rt != null) {
+//			if (minDistanceToRect(node.rt.rect, p) < nearestDistance)
+//			{nearest(node.rt, !XFlag, p);}
+//		}
 		/*****************************************************/
 
+		// add in 2016.12.03
+		/*****************************************************/
+		double lbDistance = Double.POSITIVE_INFINITY;
+		double rtDistance = Double.POSITIVE_INFINITY;
+		if (node.lb != null)
+		{
+			lbDistance = minDistanceToRect(node.lb.rect, p);
+		}
+		if (node.rt != null)
+		{
+			rtDistance = minDistanceToRect(node.rt.rect, p);
+		}
+		
+		if (lbDistance < rtDistance)
+		{
+			if (rtDistance < nearestDistance)
+			{
+				nearest(node.lb, !XFlag, p);
+				nearest(node.rt, !XFlag, p);
+			}
+			else if (lbDistance < nearestDistance) {
+				nearest(node.lb, !XFlag, p);
+			}
+		}
+		else if (rtDistance < lbDistance) {
+			if (lbDistance < nearestDistance)
+			{
+				nearest(node.rt, !XFlag, p);
+				nearest(node.lb, !XFlag, p);
+			}
+			else if (rtDistance < nearestDistance) {
+				nearest(node.rt, !XFlag, p);
+			}
+		}
+		else if (rtDistance == lbDistance) {
+			if (rtDistance < nearestDistance)
+			{
+				nearest(node.lb, !XFlag, p);
+				nearest(node.rt, !XFlag, p);
+			}
+		}
+		/*****************************************************/
 	}
 	
 	private double minDistanceToRect(RectHV rect, Point2D point)
